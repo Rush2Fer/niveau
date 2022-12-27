@@ -24,7 +24,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -34,6 +34,23 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+#define G_acc (11.72) // accelerometer gain in normal mode (en se met en +-16, le but étant de couvrir la plus grande plage même si on perd un peu de précision)
+#define G_mag (1.5) // magnetometer gain in normal mode
+
+#define LSM303AGR_ACC_ADDR (0x32<<1) // Accelerometer address (notre adresse est sur 7 bits, on ne perd pas l'information en faisant le décalage)
+#define LSM303AGR_WHO_AM_I_A (0x0F) // Accelerometer Who am I Register
+
+#define LSM303AGR_CTRL_REG1_A (0x20) // CTRL register 1
+#define LSM303AGR_CTRL_REG5_A (0x24) // CTRL register 5
+#define LSM303AGR_OUT_X_L_A (0x28) // Acceleration Registers
+
+#define LSM303AGR_MAG_ADDR (0x3C<<1) // Magnetometer address (notre adresse est sur 7 bits, on ne perd pas l'information en faisant le décalage)
+#define LSM303AGR_WHO_AM_I_M (0x4F) // Magnetometer Who am I Register
+
+#define LSM303AGR_CFG_REG_A_M (0x60) // magnetometer cfg reg A (reboot)
+#define LSM303AGR_OUTX_L_REG_M (0x68) // Magnetic field registers
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -44,17 +61,34 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+char acc_data_write[6];
+char acc_data_read[0];
+char mag_data_write[6];
+char mag_data_read[0];
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
+void powerup_sensor(void); // power-up sensor and set basics parameters
+
+void get_data(void); // read acceleration in acc_data_read[0:5] and magnetic field in mag_data_read[0:5]
+
+void soft_reset(void); // reset sensor internal parameters ("factory reset")
+
+void read_registers(void);// read all accelerometer and magnetometer registers and print it on serial
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+
+void __io_putchar(uint8_t ch){
+	HAL_UART_Transmit(&huart2, &ch, 1, 1);
+}
+
 
 /* USER CODE END 0 */
 
@@ -97,7 +131,10 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+	 printf("HELLO WORD ! \n\r");
+	 float a=0.6;
+	 printf("%f",a);
+	 printf("\n\r");
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
