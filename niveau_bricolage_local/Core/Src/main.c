@@ -51,6 +51,8 @@
 #define LSM303AGR_CFG_REG_A_M (0x60) // magnetometer cfg reg A (reboot)
 #define LSM303AGR_OUTX_L_REG_M (0x68) // Magnetic field registers
 
+// Les décalages sur les adresses sont faits en vue d'utiliser des bibliotèques
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -62,9 +64,9 @@
 
 /* USER CODE BEGIN PV */
 char acc_data_write[6];
-char acc_data_read[0];
+char acc_data_read[6];
 char mag_data_write[6];
-char mag_data_read[0];
+char mag_data_read[6];
 
 /* USER CODE END PV */
 
@@ -88,7 +90,30 @@ void read_registers(void);// read all accelerometer and magnetometer registers a
 void __io_putchar(uint8_t ch){
 	HAL_UART_Transmit(&huart2, &ch, 1, 1);
 }
+void powerup_sensor(void){
+	// Turn on accelerometer
+	HAL_StatusTypeDef ret;
+	// Accelerometer test
+	acc_data_write[0] = LSM303AGR_WHO_AM_I_A;
 
+	ret = HAL_I2C_Master_Transmit(&hi2c1,LSM303AGR_ACC_ADDR,(uint8_t*)acc_data_write,1,2000);
+	if (ret != HAL_OK) {printf("FAILED TX: RETURN ERROR: %d",ret);}
+
+	HAL_I2C_Master_Receive(&hi2c1,LSM303AGR_ACC_ADDR,(uint8_t*)acc_data_read,1,1000);
+	printf("Powerup OK\n\r");
+	printf("RECEIVED 'WHO AM I' WITH ID : (%d)\n\r",acc_data_read[0]);
+	/*
+	else {
+	//acc_data_write[1] = LSM303AGR_CTRL_REG1_A;
+	printf(" Failed i2c com");
+	}
+	*/
+}
+
+void soft_reset(void){
+	acc_data_write[0] = 0x80; //Reboot memory content -> en binaire 0b10000000
+	HAL_I2C_Master_Transmit(&hi2c1,LSM303AGR_CTRL_REG5_A,(uint8_t*)acc_data_write,1,1000);
+}
 
 /* USER CODE END 0 */
 
@@ -99,6 +124,8 @@ void __io_putchar(uint8_t ch){
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+ int16_t aXm,aYm,aZm;
+ int16_t mXm,mYm,mZm;
 
   /* USER CODE END 1 */
 
@@ -123,7 +150,9 @@ int main(void)
   MX_USART2_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-
+  printf("\n\r---- PROJET NIVEAU ----\n\r");
+  soft_reset();
+  powerup_sensor();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -131,11 +160,10 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	 printf("HELLO WORD ! \n\r");
-	 float a=0.6;
-	 printf("%f",a);
-	 printf("\n\r");
+
     /* USER CODE BEGIN 3 */
+
+
   }
   /* USER CODE END 3 */
 }
